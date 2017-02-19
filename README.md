@@ -27,7 +27,7 @@ qt5-base, gcc, make
 
 Build:
 ```
-qmake-qt5
+qmake-qt5 src/
 make
 make clean
 ```
@@ -41,7 +41,7 @@ qt5-devel, make, gcc-c++
 
 Build:
 ```
-qmake-qt5
+qmake-qt5 src/
 make
 make clean
 ```
