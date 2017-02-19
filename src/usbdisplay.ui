@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>USBDisplay</class>
+ <widget class="QDialog" name="USBDisplay">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>262</width>
+    <height>272</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Device Manager</string>
+  </property>
+  <widget class="QPushButton" name="refreshButton">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>230</y>
+     <width>85</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="mountButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>230</y>
+     <width>85</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Mount</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="deviceList">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>21</y>
+     <width>221</width>
+     <height>191</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Monospace</family>
+    </font>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
