@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QMap>
+#include <QProcess>
 
 QMap<QString, QString> *USB_device_listing();
 QString mounted_path();

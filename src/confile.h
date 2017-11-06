@@ -5,6 +5,7 @@
 #include <QList>
 #include <QFile>
 #include <QTreeWidget>
+#include <QProcess>
 
 #define METADATA_START 0xd000
 #define MIDI_START 0xe000
@@ -34,6 +35,7 @@ public:
 
     QString songName();
     QString artist();
+    QString album();
     static bool isCONFile(QString filepath);
     static bool verifyDirectoryStructure(QString mount_path);
     static QString songsDirectory(QString mount_path);

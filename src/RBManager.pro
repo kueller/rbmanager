@@ -28,4 +28,5 @@ HEADERS  += rbmanager.h \
 FORMS    += rbmanager.ui \
     usbdisplay.ui
 
-CONFIG += console
+CONFIG += console \
+    c++11

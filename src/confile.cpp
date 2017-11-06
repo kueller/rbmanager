@@ -1,5 +1,7 @@
 #include "confile.h"
 #include <QDebug>
+#include <unistd.h>
+#include <iostream>
 
 const QString RB_CODE = "45410914";
 
@@ -34,7 +36,8 @@ CONFile::CONFile(QString filepath)
         QStringList data;
         data.append(this->artist());
         data.append(this->songName());
-        data.append(this->filename);
+        //data.append(this->filename);
+        data.append(this->album());
 
         this->item = new QTreeWidgetItem(data);
     }
@@ -62,6 +65,22 @@ QString CONFile::artist()
 {
     CONData *d = this->raw_data->at(2);
     return d->list->at(1)->text;
+}
+
+QString CONFile::album()
+{
+    QString album;
+
+    foreach (CONData *d, *(this->raw_data)) {
+        if (d->list->length() == 0) continue;
+
+        if (d->list->at(0)->text == "album_name") {
+            album = d->list->at(1)->text;
+            break;
+        }
+    }
+
+    return album;
 }
 
 bool CONFile::isCONFile(QString filepath)
@@ -179,8 +198,19 @@ void CONFile::writeFile(QString mount_path)
         filename = basename + QString::number(counter, 10);
     }
 
+
+    /*
+    QProcess *p = new QProcess();
+
+    QString cmd = QString("pkexec cp \"%1\" \"%2\"").arg(this->local_filepath).arg(dir.absoluteFilePath(filename));
+    std::cout << cmd.toStdString().c_str() << std::endl;
+
+    p->start(cmd);
+    p->waitForFinished();
+    */
     QFile::copy(this->local_filepath, dir.absoluteFilePath(filename));
     this->local_filepath = dir.absoluteFilePath(filename);
+    //delete p;
 }
 
 void CONFile::overwriteFile(QString mount_path, QString existing_filepath)
@@ -192,8 +222,15 @@ void CONFile::overwriteFile(QString mount_path, QString existing_filepath)
         QFile::remove(existing_filepath);
     }
 
+    //QProcess *p = new QProcess();
+
+    //QString cmd = QString("pkexec cp \"%1\" \"%2\"").arg(this->local_filepath).arg(existing_filepath);
+
+    //p->start(cmd);
+    //p->waitForFinished();
     QFile::copy(this->local_filepath, existing_filepath);
     this->local_filepath = existing_filepath;
+    //delete p;
 }
 
 bool CONFile::verifyDirectoryStructure(QString mount_path)
@@ -228,5 +265,3 @@ QString CONFile::songsDirectory(QString mount_path)
     dir.cd(QString("Content/0000000000000000/%1/00000001").arg(RB_CODE));
     return dir.absolutePath();
 }
-
-

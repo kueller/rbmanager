@@ -1,6 +1,6 @@
 # RBManager
 
-![alt text](http://i.imgur.com/NfgaNuI.png "RBManager")
+![alt text](https://i.imgur.com/8PsI5uu.png "RBManager")
 
 ## Installation
 
@@ -50,4 +50,4 @@ make clean
 
 Click the "Open Drive" button and select your USB drive wth customs to load the song listing. Program will likely need to be run as root to do this.
 
-Use File->Import to add your new customs to the drive. The delete key will remove any selected customs from the listing.
+Drag and drop files into the custom list to add them. The delete key will remove any selected customs in the listing from your drive.

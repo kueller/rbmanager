@@ -2,9 +2,13 @@
 #define RBMANAGER_H
 
 #include <QMainWindow>
+#include <QUrl>
 #include <QtGui>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QProcess>
+
+#include <QDebug>
 
 #include <usbdisplay.h>
 
@@ -30,6 +34,10 @@ public slots:
     void set_mounted(QString drive_name);
 
 private slots:
+    void addFiles(QStringList filenames);
+
+    void filterItems(QString query);
+
     void keyPressEvent(QKeyEvent *event);
 
     void on_openUSBManager_clicked();
@@ -44,8 +52,14 @@ private slots:
 
     void on_actionPoint_to_local_directory_triggered();
 
+    void on_searchBox_textEdited(const QString &arg1);
+
 private:
     Ui::RBManager *ui;
+
+protected:
+    void dropEvent(QDropEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e);
 };
 
 
