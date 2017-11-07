@@ -1,12 +1,15 @@
+#include <QTimer>
+
 #include "rbmanager.h"
 #include "ui_rbmanager.h"
-#include <iostream>
 
 USBDisplay *devices;
 QList<CONFile *> *files;
 
 QString current_user_directory = "/";
 QString current_search_directory = "/";
+
+QString status_text = "";
 
 RBManager::RBManager(QWidget *parent) :
     QMainWindow(parent),
@@ -89,7 +92,13 @@ void RBManager::set_mounted(QString drive_name)
 
     this->reset_list();
     this->populate_list(mounted_path());
-    //ui->fileList->topLevelItem(0)->setHidden(true);
+
+    status_text = ui->statusLabel->text();
+}
+
+void RBManager::reset_status()
+{
+    ui->statusLabel->setText(status_text);
 }
 
 void RBManager::RB_unmount()
@@ -110,6 +119,7 @@ void RBManager::RB_unmount()
     ui->searchBox->setEnabled(false);
 
     this->reset_list();
+    status_text = "";
 }
 
 void RBManager::addFiles(QStringList filenames)
@@ -126,10 +136,11 @@ void RBManager::addFiles(QStringList filenames)
     bool yes_to_all = false;
     bool no_to_all = false;
 
+    int added = 0;
+
     foreach (QString file, filenames) {
         if (CONFile::isCONFile(file)) {
             CONFile *c = new CONFile(file);
-            std::cout << file.toStdString().c_str() << std::endl;
 
             bool save = true;
             bool overwrite = false;
@@ -178,6 +189,8 @@ void RBManager::addFiles(QStringList filenames)
                 c->writeFile(save_path);
                 files->append(c);
                 items.append(c->item);
+
+                added++;
             } else if (save && overwrite) {
                 c->overwriteFile(save_path, overwrite_path);
 
@@ -186,6 +199,8 @@ void RBManager::addFiles(QStringList filenames)
                 files->append(c);
 
                 items.append(c->item);
+
+                added++;
             } else if (!save && !overwrite) {
                 delete c;
             }
@@ -194,6 +209,9 @@ void RBManager::addFiles(QStringList filenames)
 
     ui->fileList->addTopLevelItems(items);
     ui->fileList->sortItems(ui->fileList->sortColumn(), Qt::AscendingOrder);
+
+    ui->statusLabel->setText(QString("Added %1 file%2.").arg(added).arg(added == 1 ? "" : "s"));
+    QTimer::singleShot(4000, this, SLOT(reset_status()));
 }
 
 void RBManager::filterItems(QString query)
@@ -339,6 +357,7 @@ void RBManager::on_actionPoint_to_local_directory_triggered()
 
         current_user_directory = path;
         ui->statusLabel->setText(QString("Directory: \"%1\"").arg(path));
+        status_text = ui->statusLabel->text();
     }
 }
 

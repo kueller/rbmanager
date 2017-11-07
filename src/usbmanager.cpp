@@ -98,17 +98,6 @@ int mount_device(QString device)
 
     mounted = r == 0;
 
-    /*
-    QProcess *p = new QProcess();
-
-    QString cmd = QString("pkexec /media/Melchior/Documents/Qt/RBManager/mount.sh %1 %2 mount").arg(device).arg(mount_path);
-    p->start(cmd);
-
-    mounted = p->waitForFinished();
-
-    delete p;
-    */
-
     return 0;
 }
 
@@ -123,17 +112,4 @@ int unmount_device()
 
     mounted = r != 0;
     return r;
-
-    /*
-    if (!mounted) return -1;
-
-    QProcess *p = new QProcess();
-    QString cmd = QString("pkexec /media/Melchior/Documents/Qt/RBManager/mount.sh %1 %2 unmount").arg("uwu").arg(mount_path);
-    p->start(cmd);
-
-    mounted = !p->waitForFinished();
-
-    delete p;
-    */
-    return 0;
 }

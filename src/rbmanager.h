@@ -34,6 +34,8 @@ public slots:
     void set_mounted(QString drive_name);
 
 private slots:
+    void reset_status();
+
     void addFiles(QStringList filenames);
 
     void filterItems(QString query);
