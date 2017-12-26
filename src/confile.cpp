@@ -31,10 +31,10 @@ CONFile::CONFile(QString filepath)
     if (this->isCONFile(filepath)) {
         QString metadata = this->readMetadata(filepath);
         if (metadata == "") return;
-        qDebug() << metadata;
+
         this->parseMetadata(metadata, this->raw_data, 0);
-        qDebug() << "Getting filename";
         this->filename = raw_data->at(0)->text;
+
         QStringList data;
         data.append(this->artist());
         data.append(this->songName());
@@ -115,11 +115,14 @@ QString CONFile::readMetadata(QString filepath)
     do {
         file.read(&byte, 1);
 
+        // Don't start reading until the first paren.
+        // This will break otherwise with the UTF-8 reader.
         if (!start) {
             start = byte == '(';
         }
 
         if (start) {
+            // UTF-8 parsing
             if (byte & 0x80) {
                 QByteArray b;
                 b.append(byte);
