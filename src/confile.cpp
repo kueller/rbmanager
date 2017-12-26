@@ -1,5 +1,7 @@
 #include "confile.h"
+#include <cstdio>
 #include <QDebug>
+#include <QString>
 #include <unistd.h>
 #include <iostream>
 
@@ -29,15 +31,14 @@ CONFile::CONFile(QString filepath)
     if (this->isCONFile(filepath)) {
         QString metadata = this->readMetadata(filepath);
         if (metadata == "") return;
-
+        qDebug() << metadata;
         this->parseMetadata(metadata, this->raw_data, 0);
+        qDebug() << "Getting filename";
         this->filename = raw_data->at(0)->text;
-
         QStringList data;
         data.append(this->artist());
         data.append(this->songName());
         data.append(this->album());
-
         this->item = new QTreeWidgetItem(data);
     }
 }
@@ -109,10 +110,26 @@ QString CONFile::readMetadata(QString filepath)
 
     QString metadata;
     char byte;
+    bool start = false;
 
     do {
         file.read(&byte, 1);
-        metadata.append(QChar(byte));
+
+        if (!start) {
+            start = byte == '(';
+        }
+
+        if (start) {
+            if (byte & 0x80) {
+                QByteArray b;
+                b.append(byte);
+                file.read(&byte, 1);
+                b.append(byte);
+                metadata.append(QString::fromUtf8(b));
+            } else {
+                metadata.append(QChar(byte));
+            }
+        }
     } while (byte != 0);
 
     file.close();
@@ -124,10 +141,12 @@ int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
     QString s = "";
     bool read_active = false;
 
+    //qDebug() << "Moving to paren.";
     for (; raw_text[i] != '('; i++);
 
     i++;
     for (; raw_text[i] != ')'; i++) {
+        //qDebug() << raw_text[i];
         if (raw_text[i] == '\'') {
             i++;
             for (; raw_text[i] != '\''; i++) {
