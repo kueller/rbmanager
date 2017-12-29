@@ -6,6 +6,7 @@
 #include <iostream>
 
 const QString RB_CODE = "45410914";
+const QString letters = "abcdefghijklmnopqrstuvwxyz";
 
 CONData::CONData()
 {
@@ -144,12 +145,10 @@ int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
     QString s = "";
     bool read_active = false;
 
-    //qDebug() << "Moving to paren.";
     for (; raw_text[i] != '('; i++);
 
     i++;
     for (; raw_text[i] != ')'; i++) {
-        //qDebug() << raw_text[i];
         if (raw_text[i] == '\'') {
             i++;
             for (; raw_text[i] != '\''; i++) {
@@ -198,7 +197,7 @@ int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
     return i;
 }
 
-void CONFile::writeFile(QString mount_path)
+bool CONFile::writeFile(QString mount_path)
 {
     QDir dir(mount_path);
     dir.cd(QString("Content/0000000000000000/%1/00000001").arg(RB_CODE));
@@ -214,18 +213,26 @@ void CONFile::writeFile(QString mount_path)
     QString filename;
 
     if (dir.exists(basename + QString::number(counter, 10))) {
-        // handle alphabet
+        QChar c;
+        for (int i = 0; i < letters.length(); i++) {
+            c = letters[i];
+            if (!dir.exists(basename + QString(c)))
+                break;
+        }
+
+        filename = basename + QString(c);
     } else {
         filename = basename + QString::number(counter, 10);
     }
 
 
-    QFile::copy(this->local_filepath, dir.absoluteFilePath(filename));
-    this->local_filepath = dir.absoluteFilePath(filename);
-    //delete p;
+    bool res = QFile::copy(this->local_filepath, dir.absoluteFilePath(filename));
+
+    if (res) this->local_filepath = dir.absoluteFilePath(filename);
+    return res;
 }
 
-void CONFile::overwriteFile(QString mount_path, QString existing_filepath)
+bool CONFile::overwriteFile(QString mount_path, QString existing_filepath)
 {
     QDir dir(mount_path);
     dir.cd(QString("Content/0000000000000000/%1/00000001").arg(RB_CODE));
@@ -234,8 +241,9 @@ void CONFile::overwriteFile(QString mount_path, QString existing_filepath)
         QFile::remove(existing_filepath);
     }
 
-    QFile::copy(this->local_filepath, existing_filepath);
-    this->local_filepath = existing_filepath;
+    bool res = QFile::copy(this->local_filepath, existing_filepath);
+    if (res) this->local_filepath = existing_filepath;
+    return res;
 }
 
 bool CONFile::verifyDirectoryStructure(QString mount_path)

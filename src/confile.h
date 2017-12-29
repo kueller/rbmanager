@@ -39,8 +39,8 @@ public:
     static bool isCONFile(QString filepath);
     static bool verifyDirectoryStructure(QString mount_path);
     static QString songsDirectory(QString mount_path);
-    void writeFile(QString mount_path);
-    void overwriteFile(QString mount_path, QString existing_filepath);
+    bool writeFile(QString mount_path);
+    bool overwriteFile(QString mount_path, QString existing_filepath);
 
 private:
     QString readMetadata(QString filepath);

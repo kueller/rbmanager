@@ -186,21 +186,23 @@ void RBManager::addFiles(QStringList filenames)
             }
 
             if (save && !overwrite) {
-                c->writeFile(save_path);
-                files->append(c);
-                items.append(c->item);
+                if (c->writeFile(save_path)) {
+                    files->append(c);
+                    items.append(c->item);
 
-                added++;
+                    added++;
+                }
             } else if (save && overwrite) {
-                c->overwriteFile(save_path, overwrite_path);
+                if (c->overwriteFile(save_path, overwrite_path)) {
 
-                delete files->at(overwrite_index);
-                files->removeAt(overwrite_index);
-                files->append(c);
+                    delete files->at(overwrite_index);
+                    files->removeAt(overwrite_index);
+                    files->append(c);
 
-                items.append(c->item);
+                    items.append(c->item);
 
-                added++;
+                    added++;
+                }
             } else if (!save && !overwrite) {
                 delete c;
             }
@@ -210,7 +212,7 @@ void RBManager::addFiles(QStringList filenames)
     ui->fileList->addTopLevelItems(items);
     ui->fileList->sortItems(ui->fileList->sortColumn(), Qt::AscendingOrder);
 
-    ui->statusLabel->setText(QString("Added %1 file%2.").arg(added).arg(added == 1 ? "" : "s"));
+    ui->statusLabel->setText(QString("Added %1 of %2 files.").arg(added).arg(filenames.length()));
     QTimer::singleShot(4000, this, SLOT(reset_status()));
 }
 
@@ -354,6 +356,8 @@ void RBManager::on_actionPoint_to_local_directory_triggered()
         this->reset_list();
         this->populate_list(path);
         ui->actionOpen_File->setEnabled(true);
+        ui->searchBox->setText("");
+        ui->searchBox->setEnabled(true);
 
         current_user_directory = path;
         ui->statusLabel->setText(QString("Directory: \"%1\"").arg(path));
