@@ -213,7 +213,7 @@ void RBManager::addFiles(QStringList filenames)
     ui->fileList->sortItems(ui->fileList->sortColumn(), Qt::AscendingOrder);
 
     ui->statusLabel->setText(QString("Added %1 of %2 files.").arg(added).arg(filenames.length()));
-    QTimer::singleShot(4000, this, SLOT(reset_status()));
+    QTimer::singleShot(5000, this, SLOT(reset_status()));
 }
 
 void RBManager::filterItems(QString query)

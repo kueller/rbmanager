@@ -202,6 +202,7 @@ bool CONFile::writeFile(QString mount_path)
     QDir dir(mount_path);
     dir.cd(QString("Content/0000000000000000/%1/00000001").arg(RB_CODE));
 
+    /*
     QString basename = this->filename.left(6) + "~";
 
     int counter = 1;
@@ -225,7 +226,8 @@ bool CONFile::writeFile(QString mount_path)
         filename = basename + QString::number(counter, 10);
     }
 
-
+    */
+    QString filename = this->filename;
     bool res = QFile::copy(this->local_filepath, dir.absoluteFilePath(filename));
 
     if (res) this->local_filepath = dir.absoluteFilePath(filename);
