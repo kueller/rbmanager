@@ -17,16 +17,19 @@ SOURCES += main.cpp\
     usbmanager.cpp \
     usbdisplay.cpp \
     size.c \
-    confile.cpp
+    confile.cpp \
+    confileinfo.cpp
 
 HEADERS  += rbmanager.h \
     usbmanager.h \
     usbdisplay.h \
     size.h \
-    confile.h
+    confile.h \
+    confileinfo.h
 
 FORMS    += rbmanager.ui \
-    usbdisplay.ui
+    usbdisplay.ui \
+    confileinfo.ui
 
 CONFIG += console \
     c++11

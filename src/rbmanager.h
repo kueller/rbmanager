@@ -5,6 +5,7 @@
 #include <QUrl>
 #include <QtGui>
 #include <QMessageBox>
+#include <QErrorMessage>
 #include <QFileDialog>
 #include <QProcess>
 
@@ -13,6 +14,7 @@
 #include <usbdisplay.h>
 
 #include "usbmanager.h"
+#include "confileinfo.h"
 #include "confile.h"
 
 namespace Ui {
@@ -56,6 +58,7 @@ private slots:
 
     void on_searchBox_textEdited(const QString &arg1);
 
+    void on_actionCONFile_Info_triggered();
 private:
     Ui::RBManager *ui;
 

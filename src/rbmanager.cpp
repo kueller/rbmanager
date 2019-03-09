@@ -4,6 +4,8 @@
 #include "ui_rbmanager.h"
 
 USBDisplay *devices;
+CONFileInfo *coninfo;
+
 QList<CONFile *> *files;
 
 QString current_user_directory = "/";
@@ -25,10 +27,12 @@ RBManager::RBManager(QWidget *parent) :
     ui->actionOpen_File->setEnabled(false);
 
     devices = new USBDisplay(this);
+    coninfo = new CONFileInfo(this);
 
     connect(devices, SIGNAL(mounted_signal(QString)), this, SLOT(set_mounted(QString)));
 
     files = new QList<CONFile *>;
+    qDebug() << "Test";
 }
 
 
@@ -304,6 +308,12 @@ void RBManager::on_openUSBManager_clicked()
     }
 }
 
+void RBManager::on_actionCONFile_Info_triggered()
+{
+    if (!coninfo->isVisible()) {
+        coninfo->show();
+    }
+}
 
 void RBManager::on_actionQuit_triggered()
 {

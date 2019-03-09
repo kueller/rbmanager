@@ -8,6 +8,8 @@
 const QString RB_CODE = "45410914";
 const QString letters = "abcdefghijklmnopqrstuvwxyz";
 
+const QByteArray IHDR = QByteArray("\x89\x50\x4e\x47\x0d\x0a\x1a\x0a");
+
 CONData::CONData()
 {
     this->list = new QList<CONData *>;
@@ -30,10 +32,12 @@ CONFile::CONFile(QString filepath)
     this->raw_data = new QList<CONData *>;
 
     if (this->isCONFile(filepath)) {
-        QString metadata = this->readMetadata(filepath);
-        if (metadata == "") return;
+        dta = this->readMetadata(filepath);
 
-        this->parseMetadata(metadata, this->raw_data, 0);
+        if (dta == "") return;
+
+        this->parseMetadata(dta, this->raw_data, 0);
+        this->thumbnail = this->readThumbnail(filepath);
         this->filename = raw_data->at(0)->text;
 
         QStringList data;
@@ -84,6 +88,28 @@ QString CONFile::album()
     return album;
 }
 
+QString CONFile::year()
+{
+    QString year;
+
+    foreach (CONData *d, *(this->raw_data)) {
+        if (d->list->length() == 0) continue;
+
+        if (d->list->at(0)->text == "year_released") {
+            year = d->list->at(1)->text;
+            break;
+        }
+    }
+
+    return year;
+}
+
+QString CONFile::genericFind(QString query)
+{
+    query = "WIP";
+    return "WIP";
+}
+
 bool CONFile::isCONFile(QString filepath)
 {
     QFile file(filepath);
@@ -99,15 +125,89 @@ bool CONFile::isCONFile(QString filepath)
     return QString::fromLocal8Bit(header, 3) == "CON";
 }
 
+quint32 CONFile::blockToOffset(quint32 block_start, quint32 entry_id)
+{
+    quint32 block_adjust = 0;
+    quint8 table_size_shift = 0;
+
+    table_size_shift = (((entry_id + 0xfff) & 0xf000) >> 0xc) == 0xb;
+
+    if (block_start >= 0xaa)
+        block_adjust += ((block_start / 0xaa) + 1) << table_size_shift;
+    if (block_start > 0x70e4)
+        block_adjust += ((block_start / 0x70e4) + 1) << table_size_shift;
+
+    return ((block_start + block_adjust) * BLOCK_SIZE) + BLOCK_START;
+}
+
+quint32 CONFile::getFileTypeOffset(QString filepath, QString extension)
+{
+    quint32 entry_id = 0;
+    quint8 blockno[3];
+    quint32 block_start = 0;
+    quint32 file_list_offset = 0;
+
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly)) return 0;
+    QDataStream in(&file);
+
+    // Entry ID used to find the table shift in blockToOffset
+    file.seek(ENTRY_ID);
+    in.setByteOrder(QDataStream::LittleEndian);
+    in >> entry_id;
+    in.setByteOrder(QDataStream::BigEndian);
+
+    // Finding the block location of the file list table.
+    // Messy operations like these to deal with 24 bit values.
+    file.seek(FILE_TABLE_BLOCK);
+    in >> blockno[2] >> blockno[1] >> blockno[0];
+    block_start = blockno[0];
+    block_start |= blockno[1] << 8;
+    block_start |= blockno[2] << (8 * 2);
+
+    file_list_offset = blockToOffset(block_start, entry_id);
+    file.seek(file_list_offset);
+
+    char *name = new char[40];
+    QString qname;
+    quint32 file_start_block = 0;
+    quint32 file_start_offset = 0;
+    quint8 fblock[3];
+
+    in.readRawData(name, CON_FILENAME_LEN);
+    qname = QString::fromLocal8Bit(name, strlen(name));
+
+    while (name[0]) {
+        if (qname.endsWith(extension)) {
+            file.seek(file.pos() + 7);
+            in >> fblock[0] >> fblock[1] >> fblock[2];
+            file_start_block = fblock[0];
+            file_start_block |= fblock[1] << 8;
+            file_start_block |= fblock[2] << (8 * 2);
+
+            file_start_offset = blockToOffset(file_start_block, entry_id);
+
+            file.seek(file.pos() + 14);
+        } else {
+            file.seek(file.pos() + 24);
+        }
+
+        in.readRawData(name, CON_FILENAME_LEN);
+        qname = QString::fromLocal8Bit(name, strlen(name));
+    }
+
+    file.close();
+    return file_start_offset;
+}
+
 QString CONFile::readMetadata(QString filepath)
 {
     QFile file(filepath);
+    quint32 dta_offset = getFileTypeOffset(filepath, "dta");
+    if (dta_offset == 0) return "";
+
     if (!file.open(QIODevice::ReadOnly)) return "";
-
-    qint64 size = file.size();
-    if (size < METADATA_START) return "";
-
-    if (!file.seek(METADATA_START)) return "";
+    file.seek(dta_offset);
 
     QString metadata;
     char byte;
@@ -138,6 +238,67 @@ QString CONFile::readMetadata(QString filepath)
 
     file.close();
     return metadata;
+}
+
+QByteArray CONFile::readThumbnail(QString filepath)
+{
+    bool end = false;
+
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly)) return NULL;
+
+    qint64 size = file.size();
+    if (size < IMAGE_START) return NULL;
+
+    if (!file.seek(IMAGE_START)) return NULL;
+
+    QByteArray data;
+
+    char header[9] = {0};
+    file.read(header, 8);
+
+    data.append(header);
+
+    // Verify PNG header
+    if (data != IHDR) return NULL;
+
+    // Begin seeking through PNG chunks
+    while (!end) {
+        // Calculate chunk length
+        char len_data[4] = {0};
+        file.read(len_data, 4);
+
+        quint32 len = 0;
+        len = len | (len_data[0] & 0xff) << 8 * 3;
+        len = len | (len_data[1] & 0xff) << 8 * 2;
+        len = len | (len_data[2] & 0xff) << 8 * 1;
+        len = len | (len_data[3] & 0xff) << 8 * 0;
+
+        data.append(len_data, 4);
+
+        // Read chunk type
+        char type_data[5] = {0};
+        file.read(type_data, 4);
+
+        QByteArray type(type_data);
+        data.append(type);
+
+        // Read data
+        if (len > 0) {
+            char chunk[len];
+            file.read(chunk, len);
+            data.append(chunk, len);
+        }
+
+        // Read CRC
+        char crc[4];
+        file.read(crc, 4);
+        data.append(crc, 4);
+
+        end = type == QByteArray("IEND");
+    }
+
+    return data;
 }
 
 int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
