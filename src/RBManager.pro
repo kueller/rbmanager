@@ -13,6 +13,7 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
+    copier.cpp \
         rbmanager.cpp \
     usbmanager.cpp \
     usbdisplay.cpp \
@@ -21,6 +22,7 @@ SOURCES += main.cpp\
     confileinfo.cpp
 
 HEADERS  += rbmanager.h \
+    copier.h \
     usbmanager.h \
     usbdisplay.h \
     size.h \

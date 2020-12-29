@@ -104,6 +104,20 @@ QString CONFile::year()
     return year;
 }
 
+QString CONFile::author()
+{
+    QString author;
+
+    foreach (CONData *d, *(this->raw_data)) {
+        if (d->text.startsWith(";Song authored by")) {
+            author = d->text;
+            author.remove(";Song authored by ");
+        }
+    }
+
+    return author;
+}
+
 QString CONFile::genericFind(QString query)
 {
     query = "WIP";
@@ -312,7 +326,14 @@ int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
     for (; raw_text[i] != ')'; i++) {
         if (raw_text[i] == '\'') {
             i++;
-            for (; raw_text[i] != '\''; i++) {
+            for (;; i++) {
+                if (raw_text[i] == '\'') {
+                    if (raw_text.length() > (i+1) && !raw_text[i+1].isLetterOrNumber()) {
+                        break;
+                    } else if (raw_text.length() <= (i+1)) {
+                        break;
+                    }
+                }
                 s.append(raw_text[i]);
             }
 
@@ -330,7 +351,13 @@ int CONFile::parseMetadata(QString raw_text, QList<CONData *> *list, int i)
             list->append(c);
             s = "";
         } else if (raw_text[i] == ';') {
-            for (; raw_text[i] != '\n'; i++);
+            for (; raw_text[i] != '\n' && raw_text[i] != '\r'; i++) {
+                s.append(raw_text[i]);
+            }
+            CONData *c = new CONData();
+            c->text = s;
+            list->append(c);
+            s = "";
         } else if (raw_text[i] == '(') {
             CONData *c = new CONData();
             i = parseMetadata(raw_text, c->list, i);

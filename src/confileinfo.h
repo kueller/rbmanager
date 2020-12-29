@@ -22,12 +22,12 @@ public:
     ~CONFileInfo();
 
     void displayInfo(CONFile *c);
+    void loadDrop(QString filename);
 protected:
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
 private:
     Ui::CONFileInfo *ui;
-    void loadDrop(QString filename);
     void resetWindow();
 };
 

@@ -54,6 +54,7 @@ public:
     bool overwriteFile(QString mount_path, QString existing_filepath);
 
     QString genericFind(QString query);
+    QString author();
 private:
     QString readMetadata(QString filepath);
     int parseMetadata(QString raw_text, QList<CONData *> *list, int i);
